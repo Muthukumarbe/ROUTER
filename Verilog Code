@@ -1,0 +1,33 @@
+`timescale 1ns / 1ps
+
+module router(
+    input wire [7:0] ip_port,
+    input wire port_sel,
+    input wire clk,
+    input wire rst,
+    output reg[7:0] op_port1,
+    output reg [15:0] op_port2
+    );
+    reg [7:0] data_buffer;          // Buffer for incoming data
+
+    // Sequential logic for storing input data
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            op_port1 <= 8'b0;       // Reset output port 1
+            op_port2 <= 16'b0;      // Reset output port 2
+            data_buffer <= 8'b0;     // Reset data buffer
+        end else begin
+            data_buffer <= ip_port;  // Store incoming data
+
+            // Routing logic based on port_sel
+            if (port_sel == 1'b0) begin
+                op_port1 <= data_buffer;         // Route to op_port1
+                op_port2 <= op_port2;            // Keep op_port2 unchanged
+            end else begin
+                // Pack two sets of data into op_port2
+                op_port2 <= {data_buffer, op_port2[7:0]}; // Shift in new data
+                op_port1 <= op_port1;              // Keep op_port1 unchanged
+            end
+        end
+    end
+endmodule
