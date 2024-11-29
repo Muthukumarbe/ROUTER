@@ -1,0 +1,73 @@
+`timescale 1ns / 1ps
+
+module ROUNTR_TB;
+
+	// Inputs
+	reg [7:0] ip_port;
+	reg port_sel;
+	reg clk;
+	reg rst;
+
+	// Outputs
+	wire [7:0] op_port1;
+	wire [15:0] op_port2;
+
+	// Instantiate the Unit Under Test (UUT)
+	router uut (
+		.ip_port(ip_port), 
+		.port_sel(port_sel), 
+		.clk(clk), 
+		.rst(rst), 
+		.op_port1(op_port1), 
+		.op_port2(op_port2)
+	);
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;  // Clock toggles every 5 time units
+    end
+
+    // Test stimulus
+    initial begin
+        // Initialize signals
+        rst = 1;                // Start with reset high
+        ip_port = 8'b0;         // Initialize input port
+        port_sel = 1'b0;        // Start with port_sel = 0
+
+        // Release reset
+        #10 rst = 0;
+
+        // Test Case 1: Route to op_port1
+        ip_port = 8'hAA;        // Input data
+        port_sel = 1'b0;        // Select op_port1
+        #10;                    // Wait for clock cycle
+        $display("Time: %0t, op_port1: %h, op_port2: %h", $time, op_port1, op_port2);
+
+        // Test Case 2: Route to op_port2
+        ip_port = 8'h55;        // Input data
+        port_sel = 1'b1;        // Select op_port2
+        #10;                    // Wait for clock cycle
+        $display("Time: %0t, op_port1: %h, op_port2: %h", $time, op_port1, op_port2);
+
+        // Test Case 3: Route to op_port1 again
+        ip_port = 8'hFF;        // Input data
+        port_sel = 1'b0;        // Select op_port1
+        #10;                    // Wait for clock cycle
+        $display("Time: %0t, op_port1: %h, op_port2: %h", $time, op_port1, op_port2);
+
+        // Test Case 4: Continue routing to op_port2 with previous value
+        ip_port = 8'h12;        // Input data
+        port_sel = 1'b1;        // Select op_port2
+        #10;                    // Wait for clock cycle
+        $display("Time: %0t, op_port1: %h, op_port2: %h", $time, op_port1, op_port2);
+
+        // Test Case 5: Reset the router
+        rst = 1;                // Assert reset
+        #10 rst = 0;           // Release reset
+        $display("After Reset, op_port1: %h, op_port2: %h", op_port1, op_port2);
+
+        // Finish simulation
+        #20 $finish;
+    end
+endmodule
